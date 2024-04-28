@@ -75,12 +75,18 @@ enum CastlePerms {
 enum MoveT { Normal, EnPassant, Castle, Promotion };
 
 // Can also be condensed, see SF
-struct Move {
+class Move {
 public:
   Square from;
   Square to;
   MoveT flag;
   PieceT prom;
+  Move(Square f, Square t, MoveT fl = Normal)
+      : from(f), to(t), flag(fl), prom(NO_TYPE) {
+    assert(fl != Promotion);
+  }
+  Move(Square f, Square t, PieceT prom)
+      : from(f), to(t), flag(Promotion), prom(prom) {}
 };
 
 /* BB funcs */
@@ -157,6 +163,13 @@ constexpr Square msb(Bitboard bb) {
 constexpr bool more_than_one(Bitboard bb) { return bb & (bb - 1); }
 
 constexpr uint32_t popcount(Bitboard bb) { return uint32_t(std::popcount(bb)); }
+
+inline Square pop_lsb(Bitboard &bb) {
+  assert(bb);
+  Square s = lsb(bb);
+  bb &= (bb - 1);
+  return s;
+}
 
 /* Square funcs */
 constexpr Square make_square(File f, Rank r) {

@@ -18,13 +18,18 @@ class Position {
   Piece squares[64];
 
   Bitboard colorBB[2];
-  Bitboard pieceBB[7]; // No king necessary, use ALL_TYPES instead
+  Bitboard pieceBB[8]; // No king necessary, use ALL_TYPES instead
   Square kings[2];
 
   int plies;
-  Color to_move;
+  Color toMove;
 
   State *state;
+
+
+    void remove_piece(Square s);
+    void put_piece(Square s, Piece p);
+    void swap_piece(Square from, Square to);
 
 public:
   Position(std::string fen =
@@ -40,11 +45,13 @@ public:
   bool inCheck() const { return state->checkers; }
 
   Piece piece_on(Square s) const;
-  bool empty(Square s) const { return piece_on(s).type == NO_TYPE; }
+  bool empty(Square s) const { return (pieces() & bb_from(s)) == 0; }
   Square ep() const;
 
   int moves() const;
   int ply() const;
+
+  Color to_move() const { return toMove; }
 
   Bitboard attacks_to(Square s) const { return attacks_to(s, pieces()); }
   Bitboard attacks_to(Square s, Bitboard occupied) const;
