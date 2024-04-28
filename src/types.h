@@ -120,6 +120,20 @@ constexpr Bitboard shift_n(Bitboard bb, int iter, Direction d) {
   return iter <= 0 ? bb : shift_n(shift(bb, d), iter - 1, d);
 }
 
+template <Direction D> constexpr Bitboard shift(Square s) {
+    return shift<D>(bb_from(s));
+}
+constexpr Bitboard shift(Square s, Direction d) {
+    return shift(bb_from(s), d);
+}
+
+template <Direction D> constexpr Bitboard shift_n(Square s, int iter) {
+    return shift_n<D>(bb_from(s), iter);
+}
+constexpr Bitboard shift_n(Square s, int iter, Direction d) {
+    return shift_n(bb_from(s), iter, d);
+}
+
 constexpr Bitboard shift_no_mask(Bitboard bb, Direction d) {
   return d == North       ? bb << 8
          : d == South     ? bb >> 8
@@ -160,7 +174,15 @@ constexpr Rank rank_of(Square s) {
   return Rank((int(s) >> 3) & 7);
 }
 
+#define INC_DEC_OP(T)\
+    inline T& operator++(T& t) { return t = T(int(t) + 1); }\
+    inline T& operator--(T& t) { return t = T(int(t) - 1); }
+
 inline Square &operator++(Square &s) { return s = is_ok(s) ? Square(int(s) + 1) : s; }
+inline Square &operator--(Square &s) { return s = is_ok(s) ? Square(int(s) - 1) : s; }
+
+INC_DEC_OP(File);
+INC_DEC_OP(Rank);
 
 /* Color funcs */
 constexpr Color operator~(Color c) { return Color(c ^ Black); }

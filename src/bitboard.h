@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <string>
 
 extern Bitboard BETWEEN_BB[64][64];
 extern Bitboard LINE_BB[64][64];
@@ -7,7 +8,7 @@ extern Bitboard SLIDERS_BB[64][8]; // One in each direction
 extern int DIST[64][64];
 
 void initialize();
-
+std::string pretty(Bitboard bb);
 
 template<typename T = Square>
 inline int distance(Square s1, Square s2);
