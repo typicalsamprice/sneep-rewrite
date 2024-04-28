@@ -40,14 +40,14 @@ enum Rank { Rank_1, Rank_2, Rank_3, Rank_4, Rank_5, Rank_6, Rank_7, Rank_8 };
 enum File { File_A, File_B, File_C, File_D, File_E, File_F, File_G, File_H };
 
 enum Direction {
-  North = 8,
-  South = -North,
-  East = 1,
-  West = -East,
-  NorthEast = North + East,
-  NorthWest = North + West,
-  SouthEast = South + East,
-  SouthWest = South + West
+  North,
+  South,
+  East,
+  West,
+  NorthEast,
+  NorthWest,
+  SouthEast,
+  SouthWest
 };
 
 enum Color { White, Black };
@@ -68,6 +68,17 @@ enum CastlePerms {
   WhiteQueenside = 0x2,
   BlackKingside = 0x4,
   BlackQueenside = 0x10,
+};
+
+enum MoveT { Normal, EnPassant, Castle, Promotion };
+
+// Can also be condensed, see SF
+struct Move {
+public:
+  Square from;
+  Square to;
+  MoveT flag;
+  PieceT prom;
 };
 
 /* BB funcs */
@@ -149,6 +160,8 @@ constexpr Rank rank_of(Square s) {
   return Rank((int(s) >> 3) & 7);
 }
 
+inline Square &operator++(Square &s) { return s = is_ok(s) ? Square(int(s) + 1) : s; }
+
 /* Color funcs */
 constexpr Color operator~(Color c) { return Color(c ^ Black); }
 
@@ -172,20 +185,20 @@ inline Piece operator+(PieceT type, Color c) {
 
 /* CastlePerms funcs */
 constexpr Square rook_from(CastlePerms cp) {
-  return cp == WhiteKingside ? H1
-    : cp == WhiteQueenside ? A1
-    : cp == BlackKingside ? H8
-    : A8;
+  return cp == WhiteKingside    ? H1
+         : cp == WhiteQueenside ? A1
+         : cp == BlackKingside  ? H8
+                                : A8;
 }
 constexpr Square rook_to(CastlePerms cp) {
-  return cp == WhiteKingside ? F1
-    : cp == WhiteQueenside ? D1
-    : cp == BlackKingside ? F8
-    : D8;
+  return cp == WhiteKingside    ? F1
+         : cp == WhiteQueenside ? D1
+         : cp == BlackKingside  ? F8
+                                : D8;
 }
 constexpr Square king_to(CastlePerms cp) {
-  return cp == WhiteKingside ? G1
-    : cp == WhiteQueenside ? C1
-    : cp == BlackKingside ? G8
-    : C8;
+  return cp == WhiteKingside    ? G1
+         : cp == WhiteQueenside ? C1
+         : cp == BlackKingside  ? G8
+                                : C8;
 }
