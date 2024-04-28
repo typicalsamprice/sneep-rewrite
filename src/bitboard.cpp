@@ -43,10 +43,9 @@ Bitboard get_slider_atts(Square s, Bitboard occ, bool diag) {
         Bitboard atts = RAYS[s][d];
         Bitboard blockers = occ & atts;
         if (blockers) {
-            Square l = lsb(blockers);
             Square blocking;
-            if (l > s) {
-                blocking = l;
+            if (bb_from(s) < blockers) {
+                blocking = lsb(blockers);
             } else {
                 blocking = msb(blockers);
             }
