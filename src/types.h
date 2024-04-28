@@ -151,7 +151,7 @@ constexpr Square lsb(Bitboard bb) {
 }
 constexpr Square msb(Bitboard bb) {
   assert(bb);
-  return Square(std::countl_zero(bb));
+  return Square(63 - std::countl_zero(bb));
 }
 
 constexpr bool more_than_one(Bitboard bb) { return bb & (bb - 1); }
