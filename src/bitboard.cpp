@@ -98,11 +98,11 @@ void initialize() {
     for (Direction d : {North, East, South, West, NorthEast, SouthEast,
                         NorthWest, SouthWest}) {
       Bitboard b = 0;
-      Bitboard s = bb_from(s1);
-      // This check isn't needed, but clang is annoyed when I implicitly do
-      // this. So, verbosely we go.
-      while ((s = shift(s, d)) != 0)
-        b |= s;
+      Bitboard s = shift(s1, d);
+      while (s) {
+          b |= s;
+          s = shift(s, d);
+      }
 
       RAYS[s1][d] = b;
     }
@@ -114,7 +114,7 @@ std::string pretty(Bitboard bb) {
   std::string s = sep;
   for (Rank r = Rank_8; r >= Rank_1; --r) {
     for (File f = File_A; f <= File_H; ++f)
-      s += bb & (f + r) ? "| X " : "|   ";
+      s += bb & bb_from(make_square(f, r)) ? "| X " : "|   ";
     s += "| " + std::to_string(1 + r) + "\n" + sep;
   }
   s += "  a   b   c   d   e   f   g   h\n";

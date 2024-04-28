@@ -57,10 +57,12 @@ typedef uint64_t Bitboard;
 enum PieceT { NO_TYPE, Pawn, Knight, Bishop, Rook, Queen, King, ALL_TYPES };
 
 // May be rewritten later
-struct Piece {
+class Piece {
 public:
   PieceT type;
   Color color;
+  Piece(PieceT t, Color c) : type(t), color(c) {}
+  Piece() : type(NO_TYPE), color(White) {}
 };
 
 enum CastlePerms {
@@ -121,17 +123,15 @@ constexpr Bitboard shift_n(Bitboard bb, int iter, Direction d) {
 }
 
 template <Direction D> constexpr Bitboard shift(Square s) {
-    return shift<D>(bb_from(s));
+  return shift<D>(bb_from(s));
 }
-constexpr Bitboard shift(Square s, Direction d) {
-    return shift(bb_from(s), d);
-}
+constexpr Bitboard shift(Square s, Direction d) { return shift(bb_from(s), d); }
 
 template <Direction D> constexpr Bitboard shift_n(Square s, int iter) {
-    return shift_n<D>(bb_from(s), iter);
+  return shift_n<D>(bb_from(s), iter);
 }
 constexpr Bitboard shift_n(Square s, int iter, Direction d) {
-    return shift_n(bb_from(s), iter, d);
+  return shift_n(bb_from(s), iter, d);
 }
 
 constexpr Bitboard shift_no_mask(Bitboard bb, Direction d) {
@@ -159,7 +159,7 @@ constexpr bool more_than_one(Bitboard bb) { return bb & (bb - 1); }
 constexpr uint32_t popcount(Bitboard bb) { return uint32_t(std::popcount(bb)); }
 
 /* Square funcs */
-constexpr Square operator+(File f, Rank r) {
+constexpr Square make_square(File f, Rank r) {
   return Square(int(f) + (8 * int(r)));
 }
 
@@ -174,12 +174,16 @@ constexpr Rank rank_of(Square s) {
   return Rank((int(s) >> 3) & 7);
 }
 
-#define INC_DEC_OP(T)\
-    inline T& operator++(T& t) { return t = T(int(t) + 1); }\
-    inline T& operator--(T& t) { return t = T(int(t) - 1); }
+#define INC_DEC_OP(T)                                                          \
+  inline T &operator++(T &t) { return t = T(int(t) + 1); }                     \
+  inline T &operator--(T &t) { return t = T(int(t) - 1); }
 
-inline Square &operator++(Square &s) { return s = is_ok(s) ? Square(int(s) + 1) : s; }
-inline Square &operator--(Square &s) { return s = is_ok(s) ? Square(int(s) - 1) : s; }
+inline Square &operator++(Square &s) {
+  return s = is_ok(s) ? Square(int(s) + 1) : s;
+}
+inline Square &operator--(Square &s) {
+  return s = is_ok(s) ? Square(int(s) - 1) : s;
+}
 
 INC_DEC_OP(File);
 INC_DEC_OP(Rank);
@@ -200,9 +204,7 @@ constexpr Rank ep_rank(Color c) { return c == White ? Rank_3 : Rank_6; }
 /* Piece funcs */
 inline Piece operator+(PieceT type, Color c) {
   assert(type != ALL_TYPES);
-  if (type == NO_TYPE)
-    return Piece{.type = type, .color = White};
-  return Piece{.type = type, .color = c};
+  return Piece(type, c);
 }
 
 /* CastlePerms funcs */
