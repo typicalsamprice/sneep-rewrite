@@ -3,7 +3,6 @@
 
 Bitboard BETWEEN_BB[64][64] = {};
 Bitboard LINE_BB[64][64] = {};
-Bitboard SLIDERS_BB[64][8] = {}; // One in each direction
 int DIST[64][64] = {};
 
 Bitboard PAWN_ATTS[64][2] = {};
@@ -29,32 +28,32 @@ constexpr Bitboard king_attacks(Square s) {
 }
 
 Bitboard get_slider_atts(Square s, Bitboard occ, bool diag) {
-    Bitboard rv = 0;
-    Direction dirs[4]{NorthWest, NorthEast, SouthWest, SouthEast};
-    // Don't care, this game sucks anyways
-    if (!diag) {
-        dirs[0] = North;
-        dirs[1] = South;
-        dirs[2] = East;
-        dirs[3] = West;
-    }
+  Bitboard rv = 0;
+  Direction dirs[4]{NorthWest, NorthEast, SouthWest, SouthEast};
+  // Don't care, this game sucks anyways
+  if (!diag) {
+    dirs[0] = North;
+    dirs[1] = South;
+    dirs[2] = East;
+    dirs[3] = West;
+  }
 
-    for (Direction d : dirs) {
-        Bitboard atts = RAYS[s][d];
-        Bitboard blockers = occ & atts;
-        if (blockers) {
-            Square blocking;
-            if (bb_from(s) < blockers) {
-                blocking = lsb(blockers);
-            } else {
-                blocking = msb(blockers);
-            }
-            atts &= ~RAYS[blocking][d];
-        }
-        rv |= atts;
+  for (Direction d : dirs) {
+    Bitboard atts = RAYS[s][d];
+    Bitboard blockers = occ & atts;
+    if (blockers) {
+      Square blocking;
+      if (bb_from(s) < blockers) {
+        blocking = lsb(blockers);
+      } else {
+        blocking = msb(blockers);
+      }
+      atts &= ~RAYS[blocking][d];
     }
+    rv |= atts;
+  }
 
-    return rv;
+  return rv;
 }
 
 Bitboard attacks(Square s, Piece p, Bitboard occ) {
@@ -80,6 +79,17 @@ Bitboard attacks(Square s, Piece p, Bitboard occ) {
   }
 }
 
+Bitboard line(Square a, Square b) {
+  assert(is_ok(a));
+  assert(is_ok(b));
+  return LINE_BB[a][b];
+}
+Bitboard between(Square a, Square b) {
+  assert(is_ok(a));
+  assert(is_ok(b));
+  return BETWEEN_BB[a][b];
+}
+
 void initialize() {
   for (Square s1 = A1; s1 <= H8; ++s1) {
     for (Square s2 = A1; s2 <= H8; ++s2) {
@@ -99,11 +109,30 @@ void initialize() {
       Bitboard b = 0;
       Bitboard s = shift(s1, d);
       while (s) {
-          b |= s;
-          s = shift(s, d);
+        b |= s;
+        s = shift(s, d);
       }
 
       RAYS[s1][d] = b;
+    }
+
+    for (Square s2 = A1; s2 <= H8; ++s2) {
+      if (!(file_of(s1) == file_of(s2) || rank_of(s1) == rank_of(s2) ||
+            distance<File>(s1, s2) == distance<Rank>(s1, s2)))
+        continue;
+
+      if (s1 == s2)
+        continue;
+
+      for (Direction d : {North, East, South, West, NorthEast, SouthEast,
+                          NorthWest, SouthWest}) {
+        if (RAYS[s1][d] & bb_from(s2)) {
+          Direction opp = (d % 2 == 0) ? Direction(d + 1) : Direction(d - 1);
+          LINE_BB[s1][s2] = LINE_BB[s2][s1] = RAYS[s1][d] | RAYS[s2][opp];
+          BETWEEN_BB[s1][s2] = BETWEEN_BB[s2][s1] = RAYS[s1][d] & RAYS[s2][opp];
+          break;
+        }
+      }
     }
   }
 }

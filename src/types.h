@@ -45,9 +45,9 @@ enum Direction {
   East,
   West,
   NorthEast,
-  NorthWest,
+  SouthWest,
   SouthEast,
-  SouthWest
+  NorthWest
 };
 
 enum Color { White, Black };
@@ -63,6 +63,12 @@ public:
   Color color;
   Piece(PieceT t, Color c) : type(t), color(c) {}
   Piece() : type(NO_TYPE), color(White) {}
+
+  bool operator==(const Piece &rhs) const {
+    return type == rhs.type && color == rhs.color;
+  }
+
+  bool operator!=(const Piece &rhs) const { return !operator==(rhs); }
 };
 
 enum CastlePerms {
@@ -238,4 +244,11 @@ constexpr Square king_to(CastlePerms cp) {
          : cp == WhiteQueenside ? C1
          : cp == BlackKingside  ? G8
                                 : C8;
+}
+
+constexpr CastlePerms kingside(Color c) {
+    return c == White ? WhiteKingside : BlackKingside;
+}
+constexpr CastlePerms queenside(Color c) {
+    return c == White ? WhiteQueenside : BlackQueenside;
 }

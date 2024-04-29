@@ -11,7 +11,11 @@ public:
   Bitboard blockers[2];
   Bitboard checkers;
 
+  Piece captured;
+
   uint8_t castlingPerms; // 0x1 K, 0x2 Q, 0x4 k, 0x01 q
+
+  State *prev;
 };
 
 class Position {
@@ -26,11 +30,12 @@ class Position {
 
   State *state;
 
+  void remove_piece(Square s);
+  void put_piece(Square s, Piece p);
+  void swap_piece(Square from, Square to);
 
-    void remove_piece(Square s);
-    void put_piece(Square s, Piece p);
-    void swap_piece(Square from, Square to);
-
+    void update_state();
+    void update_bcs(Color c);
 public:
   Position(std::string fen =
                "rnbkqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKQBNR w KQkq - 0 1");
@@ -41,6 +46,7 @@ public:
   Bitboard pieces(Color c) const;
   template <typename... PieceTypes>
   Bitboard pieces(Color c, PieceTypes... pts) const;
+  Square king(Color c) const;
 
   bool inCheck() const { return state->checkers; }
 
@@ -64,4 +70,8 @@ public:
 
   void do_move(Move m);
   void undo_move(Move m);
+
+  bool can_castle(CastlePerms cp) {
+    return (state->castlingPerms & int(cp)) > 0;
+  }
 };

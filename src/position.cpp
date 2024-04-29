@@ -1,5 +1,6 @@
 #include "position.h"
 #include "bitboard.h"
+#include <cstring>
 
 Position::Position(std::string fen) {}
 
@@ -15,6 +16,10 @@ Bitboard Position::pieces(Color c) const { return colorBB[c]; }
 template <typename... PieceTypes>
 Bitboard Position::pieces(Color c, PieceTypes... pts) const {
   return pieces(c) & pieces(pts...);
+}
+
+Square Position::king(Color c) const {
+  return lsb(pieces(c, King));
 }
 
 Piece Position::piece_on(Square s) const {
@@ -63,11 +68,106 @@ void Position::do_move(Move m) {
     assert(!empty(m.from));
     Piece movp = piece_on(m.from);
 
+    Color us = to_move();
+    Color them = ~us;
+
+    State *newSt = new State;
+    std::memcpy(newSt, state, sizeof(State));
+    newSt->prev = state;
+    state = newSt;
+
+    state->halfmoves++;
+
+    assert(movp.color == us);
+    assert(movp.type != NO_TYPE && movp.type != ALL_TYPES);
+
     MoveT flag = m.flag;
     PieceT prom = m.prom;
 
     Square f = m.from;
     Square t = m.to;
+
+    assert(f != t);
+    assert(is_ok(f));
+    assert(is_ok(t));
+
+    Piece captured = piece_on(t);
+    assert(captured.type != ALL_TYPES);
+    if (flag == EnPassant) {
+        assert(captured.type == NO_TYPE);
+        captured = Piece(Pawn, them);
+    }
+
+    if (captured.type != NO_TYPE) {
+        Square cap = flag == EnPassant ? make_square(file_of(t), rank_of(f)) : t;
+        Piece rem = piece_on(cap);
+        assert(rem == captured);
+
+        state->captured = rem;
+
+        if (rem.type == Rook) {
+          if (file_of(cap) == File_A && can_castle(queenside(them)))
+            state->castlingPerms &= ~queenside(them);
+          else if (file_of(cap) == File_H && can_castle(kingside(them)))
+            state->castlingPerms &= ~kingside(them);
+        }
+
+        state->halfmoves = 0;
+    }
+
+    if (flag == Castle) {
+      assert(movp.type == King);
+      assert(f == relative_to(E1, us));
+      assert(distance(f, t) == 2);
+      assert(rank_of(f) == rank_of(t));
+      assert(rank_of(f) == relative_to(Rank_1, us));
+
+      CastlePerms cp = f > t ? queenside(us) : kingside(us);
+      assert(can_castle(cp));
+
+      Square rk_f = rook_from(cp);
+      Square rk_t = rook_to(cp);
+
+      assert(king_to(cp) == t);
+      assert(piece_on(rk_f) == Piece(Rook, us));
+      assert(empty(rk_t));
+
+      remove_piece(f);
+      put_piece(t, Piece(King, us));
+      remove_piece(rk_f);
+      put_piece(rk_t, Piece(Rook, us));
+
+      state->castlingPerms &= ~cp;
+    } else {
+      remove_piece(f);
+      put_piece(t, movp);
+    }
+
+    state->enPassant = NO_SQUARE;
+
+    if (movp.type == Pawn) {
+      state->halfmoves = 0;
+      Square possible_ep = make_square(file_of(f), relative_to(Rank_3, us));
+      if (distance(f, t) == 2
+          && (attacks(possible_ep, Piece(Pawn, us)) & pieces(them, Pawn)))
+        state->enPassant = possible_ep;
+      else if (flag == Promotion) {
+        assert(rank_of(t) == relative_to(Rank_8, us));
+        remove_piece(t);
+        put_piece(t, Piece(prom, us));
+      }
+    } else if (movp.type == King) {
+      state->castlingPerms &= ~(kingside(us) | queenside(us));
+    } else if (movp.type == Rook) {
+      if (file_of(f) == File_A && can_castle(queenside(us)))
+        state->castlingPerms &= ~queenside(us);
+      else if (file_of(f) == File_H && can_castle(kingside(us)))
+        state->castlingPerms &= ~kingside(us);
+    }
+
+    toMove = ~toMove;
+    plies++;
+    update_state();
 }
 
 void Position::undo_move(Move m) {}
@@ -101,4 +201,29 @@ void Position::swap_piece(Square from, Square to) {
     pieceBB[p.type] ^= xr;
     pieceBB[ALL_TYPES] ^= xr;
     colorBB[p.color] ^= xr;
+}
+
+void Position::update_state() {
+  Color us = to_move();
+  Color them = ~us;
+  Square k = king(us);
+
+  state->checkers = attacks_to(k) & pieces(them);
+  update_bcs(White);
+  update_bcs(Black);
+}
+
+void Position::update_bcs(Color us) {
+  Square k = king(us);
+  Bitboard raw_attacks = sliders_to(k, 0) & pieces(~us);
+  while (raw_attacks) {
+    Square slider = pop_lsb(raw_attacks);
+    Bitboard bw = between(k, slider) & pieces();
+    if (bw && !more_than_one(bw)) {
+      // Not a checking slider
+      state->pinners[~us] |= bb_from(slider);
+      if (bw & pieces(us))
+        state->blockers[us] |= bw;
+    }
+  }
 }
