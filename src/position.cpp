@@ -2,6 +2,8 @@
 #include "bitboard.h"
 #include <cstring>
 #include <iostream>
+#include <sstream>
+#include <cctype>
 
 std::ostream& operator<<(std::ostream& os, const Position& pos) {
   std::string sep = "+---+---+---+---+---+---+---+---+\n";
@@ -24,7 +26,39 @@ std::ostream& operator<<(std::ostream& os, const Position& pos) {
   return os;
 }
 
-Position::Position(std::string fen) {}
+Position::Position(std::string fen) {
+  std::istringstream f(fen);
+  std::memset(this, 0, sizeof(Position));
+  state = new State;
+  std::memset(state, 0, sizeof(State));
+
+  for (int i = 0; i < 64; i++)
+    squares[i] = Piece();
+
+  Square s = A8;
+  f >> std::noskipws;
+  char tok;
+  while ((f >> tok) && !isspace(tok)) {
+    if (tok == '/') {
+      if (file_of(s) != File_A)
+        assert(0 && "underflow rank");
+      s = lsb(shift_n<South>(s, 2));
+      continue;
+    } else if (tok < '9' && tok > '0') {
+      File of = file_of(s);
+      s = lsb(shift_n<East>(s, tok - '0'));
+      assert(file_of(s) > of && "overflow rank");
+      continue;
+    }
+
+    PieceT pt = piecet_map_get(tolower(tok));
+    Piece p(pt, isupper(tok) ? White : Black);
+    put_piece(s, p);
+    ++s;
+  }
+
+  /// Rest of FEN parsing
+}
 
 Bitboard Position::pieces(PieceT pt) const { return pieceBB[pt]; }
 
@@ -154,10 +188,8 @@ void Position::do_move(Move m) {
       assert(piece_on(rk_f) == Piece(Rook, us));
       assert(empty(rk_t));
 
-      remove_piece(f);
-      put_piece(t, Piece(King, us));
-      remove_piece(rk_f);
-      put_piece(rk_t, Piece(Rook, us));
+      swap_piece(f, t);
+      swap_piece(rk_f, rk_t);
 
       state->castlingPerms &= ~cp;
     } else {
@@ -192,7 +224,10 @@ void Position::do_move(Move m) {
     update_state();
 }
 
-void Position::undo_move(Move m) {}
+void Position::undo_move(Move m) {
+  // Assume we never have to do this
+  return;
+}
 
 // PRIV METHODS
 void Position::remove_piece(Square s) {

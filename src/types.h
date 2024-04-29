@@ -4,6 +4,7 @@
 #include <bitset>
 #include <cassert>
 #include <cstdint>
+#include <map>
 
 #if defined(NDEBUG)
 #undef THROW_ERRORS
@@ -55,6 +56,14 @@ enum Color { White, Black };
 typedef uint64_t Bitboard;
 
 enum PieceT { NO_TYPE, Pawn, Knight, Bishop, Rook, Queen, King, ALL_TYPES };
+
+static std::map<PieceT, char> PIECET_MAP = {{Pawn, 'p'}, {Knight, 'n'}, {Bishop, 'b'}, {Rook, 'r'}, {Queen, 'q'}, {King, 'k'}};
+inline PieceT piecet_map_get(char tok) {
+    for (auto e : PIECET_MAP) {
+        if (e.second == tok)
+            return e.first;
+    }
+}
 
 // May be rewritten later
 class Piece {
