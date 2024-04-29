@@ -1,6 +1,28 @@
 #include "position.h"
 #include "bitboard.h"
 #include <cstring>
+#include <iostream>
+
+std::ostream& operator<<(std::ostream& os, const Position& pos) {
+  std::string sep = "+---+---+---+---+---+---+---+---+\n";
+  os << sep;
+  for (Rank r = Rank_8; r >= Rank_1; --r) {
+    for (File f = File_A; f <= File_H; ++f) {
+      Square s = make_square(f, r);
+      if (pos.empty(s))
+        os << "|   ";
+      else {
+        Piece p = pos.piece_on(s);
+        char ptc = " pnbrqk?"[p.type];
+        ptc = p.color == White ? ptc - 32 : ptc;
+        os << "| " << ptc << ' ';
+      }
+    }
+    os << "| " << std::to_string(1 + r) << "\n" << sep;
+  }
+  os << "  a   b   c   d   e   f   g   h\n";
+  return os;
+}
 
 Position::Position(std::string fen) {}
 

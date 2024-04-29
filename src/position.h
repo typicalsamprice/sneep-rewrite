@@ -75,3 +75,5 @@ public:
     return (state->castlingPerms & int(cp)) > 0;
   }
 };
+
+std::ostream& operator<<(std::ostream& os, const Position& pos);
