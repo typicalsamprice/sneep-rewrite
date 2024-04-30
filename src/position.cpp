@@ -40,14 +40,10 @@ Position::Position(std::string fen) {
   char tok;
   while ((f >> tok) && !isspace(tok)) {
     if (tok == '/') {
-      if (file_of(s) != File_A)
-        assert(0 && "underflow rank");
-      s = lsb(shift_n<South>(s, 2));
+      s = Square(s - 16);
       continue;
     } else if (tok < '9' && tok > '0') {
-      File of = file_of(s);
-      s = lsb(shift_n<East>(s, tok - '0'));
-      assert(file_of(s) > of && "overflow rank");
+      s = Square(s + (tok - '0'));
       continue;
     }
 
@@ -58,6 +54,42 @@ Position::Position(std::string fen) {
   }
 
   /// Rest of FEN parsing
+  f >> tok;
+  toMove = tok == 'w' ? White : Black;
+  assert(tok == 'w' || tok == 'b');
+
+  f >> tok;
+  while ((f >> tok) && !isspace(tok) && tok != '-') {
+    switch(tok) {
+      case 'K':
+        state->castlingPerms |= kingside(White);
+        continue;
+      case 'Q':
+        state->castlingPerms |= queenside(White);
+        continue;
+      case 'k':
+        state->castlingPerms |= kingside(Black);
+        continue;
+      case 'q':
+        state->castlingPerms |= queenside(Black);
+        continue;
+      default:
+        assert(0 && "unknown castling perm");
+    }
+  }
+
+  f >> tok;
+  if (tok != '-') {
+    assert(tok >= 'a' && tok <= 'h');
+    File epf = File(tok - 'a');
+    f >> tok;
+    assert(tok >= '1' && tok <= '9');
+    Rank r = Rank(tok - '1');
+    state->enPassant = make_square(epf, r);
+  } else
+    state->enPassant = NO_SQUARE;
+
+  // IGNORE REST OF FEN, I DONT CARE!
 }
 
 Bitboard Position::pieces(PieceT pt) const { return pieceBB[pt]; }
