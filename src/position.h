@@ -34,8 +34,9 @@ class Position {
   void put_piece(Square s, Piece p);
   void swap_piece(Square from, Square to);
 
-    void update_state();
-    void update_bcs(Color c);
+  void update_state();
+  void update_bcs(Color c);
+
 public:
   Position(std::string fen =
                "rnbkqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKQBNR w KQkq - 0 1");
@@ -71,9 +72,13 @@ public:
   void do_move(Move m);
   void undo_move(Move m);
 
-  bool can_castle(CastlePerms cp) {
+  bool can_castle(CastlePerms cp) const {
     return (state->castlingPerms & int(cp)) > 0;
   }
+
+  Bitboard blockers(Color c) const;
+  Bitboard pinners(Color c) const;
+  Bitboard checkers() const;
 };
 
-std::ostream& operator<<(std::ostream& os, const Position& pos);
+std::ostream &operator<<(std::ostream &os, const Position &pos);
