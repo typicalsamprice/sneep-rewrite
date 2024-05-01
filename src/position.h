@@ -38,7 +38,7 @@ class Position {
 
 public:
   Position(std::string fen =
-               "rnbkqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKQBNR w KQkq - 0 1");
+               "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
   Bitboard pieces(PieceT pt = ALL_TYPES) const;
   template <typename... PieceTypes>
