@@ -1,5 +1,6 @@
 #include "position.h"
 #include "bitboard.h"
+#include "types.h"
 #include <cctype>
 #include <cstring>
 #include <iostream>
@@ -189,6 +190,8 @@ void Position::do_move(Move m) {
     Square cap = flag == EnPassant ? make_square(file_of(t), rank_of(f)) : t;
     Piece rem = piece_on(cap);
     assert(rem == captured);
+
+    remove_piece(cap);
 
     state->captured = rem;
 

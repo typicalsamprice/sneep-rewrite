@@ -3,6 +3,8 @@
 #include "types.h"
 #include <cstring>
 
+#include <iostream>
+
 Square parse_square(const char *);
 
 Move parse_move(std::string move, const Position &pos) {
@@ -27,9 +29,9 @@ Move parse_move(std::string move, const Position &pos) {
     return Move(a, b, pt);
   }
 
-  if (pos.piece_on(a) == Piece(Pawn, us)) {
-    if (b == pos.ep())
-      return Move(a, b, EnPassant);
+  if (pos.piece_on(a) == Piece(Pawn, us) && b == pos.ep()) {
+    std::cout << "EP" << std::endl;
+    return Move(a, b, EnPassant);
   } else if (pos.piece_on(a) == Piece(King, us)) {
     if (distance(a, b) == 2)
       return Move(a, b, Castle);
