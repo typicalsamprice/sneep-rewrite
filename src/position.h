@@ -23,7 +23,6 @@ class Position {
 
   Bitboard colorBB[2];
   Bitboard pieceBB[8]; // No king necessary, use ALL_TYPES instead
-  Square kings[2];
 
   int plies;
   Color toMove;

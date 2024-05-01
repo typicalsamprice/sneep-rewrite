@@ -57,12 +57,15 @@ typedef uint64_t Bitboard;
 
 enum PieceT { NO_TYPE, Pawn, Knight, Bishop, Rook, Queen, King, ALL_TYPES };
 
-static std::map<PieceT, char> PIECET_MAP = {{Pawn, 'p'}, {Knight, 'n'}, {Bishop, 'b'}, {Rook, 'r'}, {Queen, 'q'}, {King, 'k'}};
+static std::map<PieceT, char> PIECET_MAP = {{Pawn, 'p'},   {Knight, 'n'},
+                                            {Bishop, 'b'}, {Rook, 'r'},
+                                            {Queen, 'q'},  {King, 'k'}};
 inline PieceT piecet_map_get(char tok) {
-    for (auto e : PIECET_MAP) {
-        if (e.second == tok)
-            return e.first;
-    }
+  for (auto e : PIECET_MAP) {
+    if (e.second == tok)
+      return e.first;
+  }
+  assert(0 && "no piecet char found");
 }
 
 // May be rewritten later
@@ -256,8 +259,8 @@ constexpr Square king_to(CastlePerms cp) {
 }
 
 constexpr CastlePerms kingside(Color c) {
-    return c == White ? WhiteKingside : BlackKingside;
+  return c == White ? WhiteKingside : BlackKingside;
 }
 constexpr CastlePerms queenside(Color c) {
-    return c == White ? WhiteQueenside : BlackQueenside;
+  return c == White ? WhiteQueenside : BlackQueenside;
 }

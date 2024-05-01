@@ -47,6 +47,7 @@ Position::Position(std::string fen) {
       continue;
     }
 
+    assert(tok != ' ');
     PieceT pt = piecet_map_get(tolower(tok));
     Piece p(pt, isupper(tok) ? White : Black);
     put_piece(s, p);
