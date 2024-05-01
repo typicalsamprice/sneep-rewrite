@@ -296,6 +296,8 @@ void Position::swap_piece(Square from, Square to) {
   pieceBB[p.type] ^= xr;
   pieceBB[ALL_TYPES] ^= xr;
   colorBB[p.color] ^= xr;
+  squares[to] = squares[from];
+  squares[from] = Piece();
 }
 
 void Position::update_state() {
