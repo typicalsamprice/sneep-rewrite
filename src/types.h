@@ -105,6 +105,7 @@ public:
   }
   Move(Square f, Square t, PieceT prom)
       : from(f), to(t), flag(Promotion), prom(prom) {}
+  Move() : Move(NO_SQUARE, NO_SQUARE){};
 };
 
 /* BB funcs */
